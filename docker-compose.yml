@@ -1,0 +1,28 @@
+services:
+  meetingbot:
+    build: .
+    image: meetingbot:latest
+    container_name: meetingbot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MEETINGBOT_DATA_DIR: /app/data
+      # MEETINGBOT_LOG_LEVEL: INFO
+    volumes:
+      - ./data:/app/data
+      - ./config.yaml:/app/config.yaml:ro
+    # Web UI (Phase 6). Bound to localhost unless you change config.yaml.
+    ports:
+      - "127.0.0.1:8080:8080"
+    # Phase 3+: run the browser in headed mode on Xvfb inside the container.
+    # shm_size helps Chromium avoid crashes.
+    shm_size: "1gb"
+    # If you have an NVIDIA GPU, uncomment to use it for faster-whisper:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]

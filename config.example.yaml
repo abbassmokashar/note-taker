@@ -1,0 +1,76 @@
+# MeetingBot configuration. Copy to config.yaml and edit.
+# Secrets do NOT live here — they go in .env.
+
+bot:
+  display_name: "Notetaker (recording this meeting)"   # transparent identity
+  # The bot's own Google account. Required for calendar auto-invite.
+  account_email: ""
+  announce_in_chat: true
+  announcement_en: "Hi, I'm an automated notetaker. This meeting is being recorded and transcribed. Please tell the host if you object."
+  announcement_ar: "مرحبا، أنا مساعد آلي لتدوين الملاحظات. هذا الاجتماع قيد التسجيل والتفريغ النصي. الرجاء إبلاغ المضيف إذا كان لديكم اعتراض."
+  join_early_seconds: 30
+  waiting_room_timeout_minutes: 10
+  leave_when_alone_after_seconds: 120
+  max_meeting_hours: 4
+  record_video: false          # audio-only by default to save disk
+  video_resolution: "1280x720"
+  language: "en-US"            # force the bot browser UI language (consistent selectors)
+
+calendar:
+  poll_seconds: 60
+  only_events_with_meet_link: true
+  timezone: "Asia/Beirut"
+  lookahead_hours: 24
+  max_concurrent_bots: 2
+  # Add the bot account as a guest on events YOU organize, so it enters instantly
+  # instead of knocking. Requires the calendar.events scope (re-auth after enabling).
+  auto_invite: false
+  join_rules:
+    default: join                # join | skip
+    skip_title_contains: ["[private]", "lunch"]
+    skip_if_declined: true
+    skip_all_day: true
+    skip_tag: "#nobot"           # tag in title or description to opt out
+
+transcription:
+  provider: faster_whisper       # faster_whisper | groq_whisper
+  model: auto                    # auto = pick by hardware tier (see docs)
+  device: auto                   # cuda | cpu | auto
+  compute_type: auto             # float16 | int8 | auto
+  language: null                 # null = auto-detect, allow code-switching
+  beam_size: 5
+  vad_filter: true
+  initial_prompt_ar: "اجتماع عمل بالعربية اللبنانية مع بعض الكلمات الإنكليزية والفرنسية."
+  glossary: []                   # names/terms to bias recognition, user-editable
+  glossary_correction: false     # optional extra LLM pass to fix obvious ASR errors
+
+llm:
+  provider: gemini               # gemini | ollama
+  gemini_model: "gemini-2.5-flash"      # verify the current free-tier model name at build time
+  ollama_model: "qwen2.5:7b-instruct"   # verify availability; pick best free Arabic-capable model that fits hardware
+  ollama_host: "http://localhost:11434"
+  fallback_provider: ollama
+  chunk_chars: 6000
+  max_retries: 5
+  temperature: 0.2
+
+outputs:
+  languages: [en, ar]
+  arabic_style: msa_simple       # msa_simple | lebanese_colloquial
+  formats: [md, srt, vtt, json, pdf]
+  keep_video: false
+  delete_audio_after_days: 90    # 0 = keep forever
+
+delivery:
+  email:
+    enabled: false
+    to: ""
+    smtp_user: ""
+    smtp_app_password_env: "SMTP_APP_PASSWORD"
+  drive:
+    enabled: false
+    folder_name: "MeetingBot"
+  web_ui:
+    enabled: true
+    host: "127.0.0.1"
+    port: 8080
