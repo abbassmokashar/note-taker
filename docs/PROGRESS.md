@@ -296,3 +296,39 @@ All speech recognition (`faster-whisper`) runs locally. Tests make **no** networ
 - Phases 3 and 4 are code-complete and unit-tested but have **not been run against live
   Google Meet / Calendar** — that requires the human's accounts and a test meeting. See
   `docs/MANUAL_TESTS.md`.
+
+---
+
+## Post-build additions
+
+### Real pipeline verification (2026-10-02)
+- Installed the `stt` extra (`faster-whisper` 1.2.1) and ran the pipeline on a genuine
+  16 kHz mono WAV (speech generated with Windows SAPI):
+  - `FasterWhisperTranscriber('tiny')` transcribed it correctly with timestamps:
+    `[00:00] Hello. This is a test of the meeting bot transcription pipeline.` /
+    `[00:05] The quick brown fox jumps over the lazy dog.` /
+    `[00:08] Action item, send the report by Friday.`
+  - The **full runner** (`process_file`) completed with `status: done` and produced all
+    19 output files (original/en/ar transcripts in md/srt/vtt/json, `bilingual.md`,
+    `notes.en.md`, `notes.ar.md`, `meta.json`) — with a stub LLM standing in for the
+    absent `GEMINI_API_KEY`.
+- This confirms the offline path end-to-end on real audio. Only the LLM providers and
+  the live Google integrations remain unverified here.
+
+### S3-compatible storage ✅
+- `delivery.s3` config + `S3Uploader` (boto3, lazy) uploads every meeting file
+  (including `recording.opus`) to Cloudflare R2, Backblaze B2, MinIO, or AWS S3.
+- Email delivery now never attaches the recording (text formats only).
+- Recommended free option: **Cloudflare R2** (10 GB, zero egress, S3 API).
+
+### pyannote diarization fallback ✅
+- `transcription.diarization: true` labels speakers from diarization **only when
+  caption events are unavailable**. Requires `HF_TOKEN` + accepting the pyannote model
+  terms; failures are logged and the pipeline continues with unlabeled speakers.
+
+### CI ✅
+- `.github/workflows/ci.yml` runs `ruff` + `pytest` on Python 3.11 and 3.12 for every
+  push and pull request.
+
+### Test count
+- **161 tests pass**, `ruff` clean.

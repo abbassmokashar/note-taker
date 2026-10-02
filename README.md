@@ -47,8 +47,10 @@ This project is built phase by phase. See `docs/PROGRESS.md` for the live status
 | 8 | Hardening, ops, docs | ✅ done |
 | 9 | Local capture fallback (optional) | ✅ done |
 
-**153 tests pass; `ruff` clean.** See `docs/PROGRESS.md` for the honest status of each
-phase (including what could not be verified in a headless dev environment).
+**161 tests pass; `ruff` clean.** CI runs them on every push. The offline pipeline was
+verified end-to-end on real audio with real `faster-whisper` output. See
+`docs/PROGRESS.md` for the honest status of each phase (including what could not be
+verified without accounts).
 
 ### Commands
 
