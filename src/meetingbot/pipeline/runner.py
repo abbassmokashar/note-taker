@@ -32,6 +32,7 @@ from meetingbot.db import (
 )
 from meetingbot.hardware import resolve_transcription
 from meetingbot.pipeline.audio_prep import ensure_16k_mono
+from meetingbot.pipeline.diarize import assign_speakers_from_turns, build_diarizer
 from meetingbot.pipeline.export import (
     TranscriptMeta,
     export_bilingual,
@@ -131,6 +132,7 @@ class PipelineRunner:
         session_factory: sessionmaker[Session] | None = None,
         transcriber: Transcriber | None = None,
         llm: LLM | None = None,
+        diarizer=None,
     ) -> None:
         self.settings = settings
         if session_factory is None:
@@ -140,6 +142,12 @@ class PipelineRunner:
         self.session_factory = session_factory
         self.transcriber = transcriber
         self._llm = llm
+        self._diarizer = diarizer
+
+    def _get_diarizer(self):
+        if self._diarizer is None:
+            self._diarizer = build_diarizer(Secrets.from_env().hf_token)
+        return self._diarizer
 
     @property
     def llm(self) -> LLM:
@@ -331,12 +339,26 @@ class PipelineRunner:
         self._mark(session, meeting.id, StageName.ALIGN_SPEAKERS, StageStatus.RUNNING)
         events = load_caption_events(folder / "events.jsonl")
         start_wall = load_recording_start_wall(folder)
-        align_speakers(raw.segments, events, start_wall)
+        if events and start_wall is not None:
+            align_speakers(raw.segments, events, start_wall)
+        elif self.settings.transcription.diarization:
+            self._diarize(folder, raw)
         raw.segments = merge_consecutive(raw.segments)
         self._write_segments(self._raw_path(folder), raw)
         self._persist_segments(session, meeting.id, raw.segments)
         self._mark(session, meeting.id, StageName.ALIGN_SPEAKERS, StageStatus.DONE)
         return raw
+
+    def _diarize(self, folder: Path, raw: TranscriptionResult) -> None:
+        """Fallback: label speakers with pyannote. Never fails the pipeline."""
+        audio = folder / "work" / "audio16k.wav"
+        if not audio.exists():
+            audio = find_recording(folder) or audio
+        try:
+            turns = self._get_diarizer().diarize(audio)
+            assign_speakers_from_turns(raw.segments, turns)
+        except Exception as exc:  # noqa: BLE001 - diarization is optional
+            logger.warning("Diarization unavailable; leaving speakers unlabeled: %s", exc)
 
     def _run_translate(
         self,
