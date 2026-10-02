@@ -1,0 +1,85 @@
+:root {
+  --bg: #0f1115;
+  --card: #171a21;
+  --text: #e8ebf0;
+  --muted: #98a2b3;
+  --accent: #6aa8ff;
+  --border: #2a2f3a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Noto Sans", "Noto Naskh Arabic", "Segoe UI", system-ui, sans-serif;
+  line-height: 1.7;
+}
+
+.topbar {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.brand { font-weight: 700; color: var(--accent); text-decoration: none; }
+.container { max-width: 980px; margin: 0 auto; padding: 1.25rem; }
+.muted { color: var(--muted); font-size: 0.9rem; }
+.error { color: #ff8a8a; }
+
+table.meetings { width: 100%; border-collapse: collapse; }
+table.meetings th, table.meetings td {
+  text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--border);
+}
+a { color: var(--accent); }
+
+.status { padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.8rem; background: #2a2f3a; }
+.status-done { background: #1f6f43; }
+.status-failed { background: #7a2b2b; }
+.status-recording { background: #7a4a1f; }
+
+audio { width: 100%; margin: 1rem 0; }
+.toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.toolbar button.active, .tabs button.active { background: var(--accent); color: #06101f; }
+
+button {
+  background: var(--card); color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.35rem 0.75rem; cursor: pointer;
+}
+
+.transcript { display: flex; flex-direction: column; gap: 0.4rem; }
+.seg {
+  display: grid;
+  grid-template-columns: 4rem 8rem 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--card);
+}
+.seg:hover { outline: 1px solid var(--border); }
+.seg.active { outline: 2px solid var(--accent); }
+.seg .time { color: var(--muted); font-variant-numeric: tabular-nums; }
+.seg .speaker { color: var(--accent); font-weight: 600; }
+.seg .original { grid-column: 3 / -1; color: var(--muted); font-size: 0.85rem; }
+
+/* Mixed Arabic/English lines must not force a single direction. */
+.seg .ar, .tab-panel[dir="rtl"] { unicode-bidi: plaintext; }
+
+/* View modes toggle whole columns. */
+.view-en .seg .ar { display: none; }
+.view-ar .seg .en { display: none; }
+.view-ar .seg { grid-template-columns: 4rem 8rem 1fr; }
+.view-en .seg { grid-template-columns: 4rem 8rem 1fr; }
+
+.notes { margin-top: 2rem; }
+.tabs { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+.tab-panel { display: none; background: var(--card); padding: 1rem; border-radius: 10px; }
+.tab-panel.active { display: block; }
+.tab-panel ul { padding-inline-start: 1.25rem; }
+
+.files ul { list-style: none; padding: 0; }
+.rename form { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.rename input, .rename select { padding: 0.35rem; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text); }

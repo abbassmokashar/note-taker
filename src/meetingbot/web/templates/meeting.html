@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ meeting.title }} · MeetingBot{% endblock %}
+{% block content %}
+<h1>{{ meeting.title }}</h1>
+<p class="muted">
+  <span class="status status-{{ meeting.status }}">{{ meeting.status }}</span>
+  {% if meeting.duration %} · {{ '%.0f'|format(meeting.duration // 60) }} min{% endif %}
+</p>
+{% if meeting.error %}<p class="error">{{ meeting.error }}</p>{% endif %}
+
+{% if has_audio %}
+<audio id="player" controls preload="metadata" src="/meetings/{{ meeting.id }}/audio"></audio>
+{% endif %}
+
+<div class="toolbar">
+  <button data-view="both" class="active">Bilingual</button>
+  <button data-view="en">English</button>
+  <button data-view="ar">العربية</button>
+  <button id="reprocess" data-id="{{ meeting.id }}">Reprocess</button>
+</div>
+
+<section id="transcript" class="transcript view-both">
+  {% for s in segments %}
+  <div class="seg" data-start="{{ s.start_s }}" data-speaker="{{ s.speaker or '' }}">
+    <span class="time">{{ '%02d:%02d'|format((s.start_s // 60)|int, (s.start_s % 60)|int) }}</span>
+    {% if s.speaker %}<span class="speaker">{{ s.speaker }}</span>{% endif %}
+    <span class="original">{{ s.text_original }}</span>
+    <span class="en" lang="en" dir="ltr">{{ s.text_en or '' }}</span>
+    <span class="ar" lang="ar" dir="rtl">{{ s.text_ar or '' }}</span>
+  </div>
+  {% endfor %}
+</section>
+
+{% if speakers %}
+<section class="rename">
+  <h2>Rename speaker</h2>
+  <form id="rename-form" data-id="{{ meeting.id }}">
+    <select name="old">
+      {% for sp in speakers %}<option value="{{ sp }}">{{ sp }}</option>{% endfor %}
+    </select>
+    <input name="new" placeholder="New name" required>
+    <button type="submit">Rename</button>
+  </form>
+</section>
+{% endif %}
+
+<section class="notes">
+  <h2>Notes</h2>
+  <div class="tabs">
+    {% for lang in notes.keys() %}
+    <button data-tab="{{ lang }}" {% if loop.first %}class="active"{% endif %}>
+      {{ 'English' if lang == 'en' else 'العربية' }}
+    </button>
+    {% endfor %}
+  </div>
+  {% for lang, n in notes.items() %}
+  <div class="tab-panel" data-panel="{{ lang }}"
+       lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
+    {% if n.summary %}<p class="summary">{{ n.summary }}</p>{% endif %}
+    {% if n.key_points %}<h3>{{ 'Key points' if lang == 'en' else 'أبرز النقاط' }}</h3>
+      <ul>{% for p in n.key_points %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}
+    {% if n.decisions %}<h3>{{ 'Decisions' if lang == 'en' else 'القرارات' }}</h3>
+      <ul>{% for d in n.decisions %}<li>{{ d }}</li>{% endfor %}</ul>{% endif %}
+    {% if n.action_items %}<h3>{{ 'Action items' if lang == 'en' else 'بنود العمل' }}</h3>
+      <ul>{% for a in n.action_items %}<li>{{ a }}</li>{% endfor %}</ul>{% endif %}
+    {% if n.open_questions %}<h3>{{ 'Open questions' if lang == 'en' else 'أسئلة مفتوحة' }}</h3>
+      <ul>{% for q in n.open_questions %}<li>{{ q }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+  {% endfor %}
+</section>
+
+<section class="files">
+  <h2>Files</h2>
+  <ul>
+    {% for f in files %}
+    <li><a href="/meetings/{{ meeting.id }}/files/{{ f }}">{{ f }}</a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

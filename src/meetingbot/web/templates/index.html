@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Meetings · MeetingBot{% endblock %}
+{% block content %}
+<h1>Meetings</h1>
+{% if meetings %}
+<table class="meetings">
+  <thead>
+    <tr><th>Title</th><th>Status</th><th>Started</th><th>Error</th></tr>
+  </thead>
+  <tbody>
+    {% for m in meetings %}
+    <tr>
+      <td><a href="/meetings/{{ m.id }}">{{ m.title or m.id }}</a></td>
+      <td><span class="status status-{{ m.status }}">{{ m.status }}</span></td>
+      <td>{{ m.start.strftime('%Y-%m-%d %H:%M') if m.start else '—' }}</td>
+      <td class="error">{{ m.error or '' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No meetings yet. Record one with <code>meetingbot join &lt;url&gt;</code>.</p>
+{% endif %}
+{% endblock %}
