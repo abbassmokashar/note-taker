@@ -64,5 +64,6 @@ RUN chmod +x ./scripts/docker-entrypoint.sh
 VOLUME ["/app/data"]
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/app/scripts/docker-entrypoint.sh"]
-# Phase 4 will switch this to: meetingbot run
-CMD ["meetingbot", "--help"]
+# Start the calendar scheduler. Run `meetingbot auth calendar` first, otherwise it
+# exits with a clear message. Override with: docker compose run --rm meetingbot ...
+CMD ["meetingbot", "run"]
