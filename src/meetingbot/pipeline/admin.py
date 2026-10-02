@@ -90,17 +90,9 @@ def deliver_meeting(settings: Settings, secrets: Secrets, meeting_id: str) -> li
         if notes.exists():
             bodies[lang] = notes.read_text(encoding="utf-8")
 
-    attachments = [
-        p
-        for p in (
-            folder / "notes.en.md",
-            folder / "notes.ar.md",
-            folder / "transcript.en.md",
-            folder / "transcript.ar.md",
-            folder / "transcript.original.srt",
-        )
-        if p.exists()
-    ]
+    # Send every file in the meeting folder. Each notifier decides what it can
+    # handle (email keeps to text formats; S3 uploads everything incl. the recording).
+    attachments = sorted(p for p in folder.iterdir() if p.is_file())
 
     body_parts = [f"# {title}\n"]
     if "en" in bodies:

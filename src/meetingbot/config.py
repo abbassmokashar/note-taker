@@ -71,6 +71,8 @@ class TranscriptionConfig(BaseModel):
     language: str | None = None
     beam_size: int = Field(default=5, ge=1)
     vad_filter: bool = True
+    # Optional pyannote diarization fallback when captions are unavailable.
+    diarization: bool = False
     initial_prompt_ar: str = (
         "اجتماع عمل بالعربية اللبنانية مع بعض الكلمات الإنكليزية والفرنسية."
     )
@@ -110,6 +112,18 @@ class DriveConfig(BaseModel):
     folder_name: str = "MeetingBot"
 
 
+class S3Config(BaseModel):
+    """Any S3-compatible store: Cloudflare R2, Backblaze B2, MinIO, AWS S3."""
+
+    enabled: bool = False
+    endpoint_url: str = ""        # e.g. https://<account>.r2.cloudflarestorage.com
+    bucket: str = "meetingbot"
+    prefix: str = "meetings"
+    region: str = "auto"
+    access_key_env: str = "S3_ACCESS_KEY_ID"
+    secret_key_env: str = "S3_SECRET_ACCESS_KEY"
+
+
 class WebUIConfig(BaseModel):
     enabled: bool = True
     host: str = "127.0.0.1"
@@ -119,6 +133,7 @@ class WebUIConfig(BaseModel):
 class DeliveryConfig(BaseModel):
     email: EmailConfig = Field(default_factory=EmailConfig)
     drive: DriveConfig = Field(default_factory=DriveConfig)
+    s3: S3Config = Field(default_factory=S3Config)
     web_ui: WebUIConfig = Field(default_factory=WebUIConfig)
 
 
@@ -162,6 +177,8 @@ class Secrets:
     smtp_app_password: str | None = None
     groq_api_key: str | None = None
     web_token: str | None = None
+    s3_access_key_id: str | None = None
+    s3_secret_access_key: str | None = None
 
     @classmethod
     def from_env(cls) -> Secrets:
@@ -175,6 +192,8 @@ class Secrets:
             smtp_app_password=get("SMTP_APP_PASSWORD"),
             groq_api_key=get("GROQ_API_KEY"),
             web_token=get("MEETINGBOT_WEB_TOKEN"),
+            s3_access_key_id=get("S3_ACCESS_KEY_ID"),
+            s3_secret_access_key=get("S3_SECRET_ACCESS_KEY"),
         )
 
 

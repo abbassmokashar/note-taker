@@ -116,6 +116,43 @@ Set `llm.provider: ollama` in `config.yaml` for a fully local, private pipeline.
 - **Auto-invite** — set `calendar.auto_invite: true` and `bot.account_email` in
   `config.yaml`, then re-run `meetingbot auth calendar` to grant the write scope.
 
+## 8b. Storage options (where recordings live)
+
+By default everything stays on **local disk** (`data/meetings/...`) — free, private,
+and always on. You can additionally or instead push finished meetings to:
+
+| Destination | Free tier | Setup |
+|---|---|---|
+| **Local disk** (default) | unlimited (your disk) | none |
+| **Cloudflare R2** | 10 GB, no egress fees, S3 API | create bucket + API token → `delivery.s3` |
+| **Backblaze B2** | 10 GB, S3 API | create bucket + app key → `delivery.s3` |
+| **MinIO** (self-hosted) | unlimited (your server) | run MinIO, set `endpoint_url` |
+| **AWS S3** | pay-as-you-go | `delivery.s3` with AWS keys |
+| **Google Drive** | 15 GB | not implemented yet (placeholder) |
+
+To enable S3-compatible upload, edit `config.yaml`:
+
+```yaml
+delivery:
+  s3:
+    enabled: true
+    endpoint_url: "https://<account-id>.r2.cloudflarestorage.com"  # R2 example
+    bucket: "meetingbot"
+    prefix: "meetings"
+    region: "auto"
+```
+
+and put the credentials in `.env`:
+
+```
+S3_ACCESS_KEY_ID=...
+S3_SECRET_ACCESS_KEY=...
+```
+
+After a meeting finishes, **all** files in the meeting folder (including
+`recording.opus`) are uploaded under `meetings/<meeting-id>/`. Email delivery only
+attaches the small text files — never the recording.
+
 ## 9. Running it
 
 ```bash

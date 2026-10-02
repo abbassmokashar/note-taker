@@ -40,6 +40,7 @@ transcription:
   language: null                 # null = auto-detect, allow code-switching
   beam_size: 5
   vad_filter: true
+  diarization: false             # pyannote fallback when captions are unavailable (needs HF_TOKEN)
   initial_prompt_ar: "اجتماع عمل بالعربية اللبنانية مع بعض الكلمات الإنكليزية والفرنسية."
   glossary: []                   # names/terms to bias recognition, user-editable
   glossary_correction: false     # optional extra LLM pass to fix obvious ASR errors
@@ -70,6 +71,16 @@ delivery:
   drive:
     enabled: false
     folder_name: "MeetingBot"
+  # Any S3-compatible store: Cloudflare R2 (10 GB free), Backblaze B2 (10 GB free),
+  # MinIO (self-hosted), AWS S3. Set credentials in .env.
+  s3:
+    enabled: false
+    endpoint_url: ""             # e.g. https://<account-id>.r2.cloudflarestorage.com
+    bucket: "meetingbot"
+    prefix: "meetings"
+    region: "auto"
+    access_key_env: "S3_ACCESS_KEY_ID"
+    secret_key_env: "S3_SECRET_ACCESS_KEY"
   web_ui:
     enabled: true
     host: "127.0.0.1"
